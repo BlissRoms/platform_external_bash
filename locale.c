@@ -40,7 +40,7 @@
 #include "input.h"	/* For bash_input */
 
 #ifndef errno
-extern int errno;
+#include <errno.h>
 #endif
 
 int locale_utf8locale;	/* unused for now */

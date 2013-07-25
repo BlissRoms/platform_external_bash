@@ -76,7 +76,7 @@
 #include "builtins/common.h"
 
 #if !defined (errno)
-extern int errno;
+#include <errno.h>
 #endif /* !errno */
 
 #if !defined (HAVE_KILLPG)

@@ -52,7 +52,7 @@
 #endif
 
 #ifndef errno
-extern int errno;
+#include <errno.h>
 #endif
 
 /* Flags which describe the current handling state of a signal. */

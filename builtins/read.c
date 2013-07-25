@@ -44,7 +44,7 @@
 #include "shmbutil.h"
 
 #if !defined(errno)
-extern int errno;
+#include <errno.h>
 #endif
 
 extern void run_pending_traps __P((void));
