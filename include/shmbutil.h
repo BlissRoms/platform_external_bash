@@ -46,7 +46,11 @@ extern int locale_mb_cur_max;	/* XXX */
 #define MBSLEN(s)	(((s) && (s)[0]) ? ((s)[1] ? mbstrlen (s) : 1) : 0)
 #define MB_STRLEN(s)	((MB_CUR_MAX > 1) ? MBSLEN (s) : STRLEN (s))
 
+#ifdef __BIONIC__
+#define MBLEN(s, n)	((MB_CUR_MAX > 1) ? mbtowc((wchar_t *)0, (s), (n)) : 1)
+#else
 #define MBLEN(s, n)	((MB_CUR_MAX > 1) ? mblen ((s), (n)) : 1)
+#endif
 #define MBRLEN(s, n, p)	((MB_CUR_MAX > 1) ? mbrlen ((s), (n), (p)) : 1)
 
 #else /* !HANDLE_MULTIBYTE */

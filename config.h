@@ -498,7 +498,7 @@
 
 #define CAN_REDEFINE_GETENV 1
 
-// #define HAVE_STD_PUTENV 1
+#define HAVE_STD_PUTENV 1
 
 #define HAVE_STD_UNSETENV 1
 
