@@ -597,8 +597,10 @@
 /* Define if you have the getcwd function.  */
 #define HAVE_GETCWD 1
 
+#ifndef __LP64__
 /* Define if you have the getdtablesize function.  */
 #define HAVE_GETDTABLESIZE 1
+#endif
 
 /* Define if you have the getgroups function.  */
 #define HAVE_GETGROUPS 1
