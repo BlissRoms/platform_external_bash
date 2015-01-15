@@ -78,9 +78,11 @@ static void reset_alarm __P((void));
 procenv_t alrmbuf;
 int sigalrm_seen;
 
-static int reading;
+static int reading, tty_modified;
 static SigHandler *old_alrm;
 static unsigned char delim;
+
+static struct ttsave termsave;
 
 /* In all cases, SIGALRM just sets a flag that we check periodically.  This
    avoids problems with the semi-tricky stuff we do with the xfree of
@@ -126,7 +128,6 @@ read_builtin (list)
   struct stat tsb;
   SHELL_VAR *var;
   TTYSTRUCT ttattrs, ttset;
-  struct ttsave termsave;
 #if defined (ARRAY_VARS)
   WORD_LIST *alist;
 #endif
@@ -159,7 +160,7 @@ read_builtin (list)
   USE_VAR(ps2);
   USE_VAR(lastsig);
 
-  sigalrm_seen = reading = 0;
+  sigalrm_seen = reading = tty_modified = 0;
 
   i = 0;		/* Index into the string that we are reading. */
   raw = edit = 0;	/* Not reading raw input by default. */
@@ -376,6 +377,8 @@ read_builtin (list)
 	  retval = 128+SIGALRM;
 	  goto assign_vars;
 	}
+      if (interactive_shell == 0)
+	initialize_terminating_signals ();
       old_alrm = set_signal_handler (SIGALRM, sigalrm);
       add_unwind_protect (reset_alarm, (char *)NULL);
 #if defined (READLINE)
@@ -420,7 +423,10 @@ read_builtin (list)
 	  i = silent ? ttfd_cbreak (fd, &ttset) : ttfd_onechar (fd, &ttset);
 	  if (i < 0)
 	    sh_ttyerror (1);
+	  tty_modified = 1;
 	  add_unwind_protect ((Function *)ttyrestore, (char *)&termsave);
+	  if (interactive_shell == 0)
+	    initialize_terminating_signals ();
 	}
     }
   else if (silent)	/* turn off echo but leave term in canonical mode */
@@ -435,7 +441,10 @@ read_builtin (list)
       if (i < 0)
 	sh_ttyerror (1);
 
+      tty_modified = 1;
       add_unwind_protect ((Function *)ttyrestore, (char *)&termsave);
+      if (interactive_shell == 0)
+	initialize_terminating_signals ();
     }
 
   /* This *must* be the top unwind-protect on the stack, so the manipulation
@@ -526,6 +535,8 @@ read_builtin (list)
 	    }
 	  else
 	    lastsig = 0;
+	  if (terminating_signal && tty_modified)
+	    ttyrestore (&termsave);	/* fix terminal before exiting */
 	  CHECK_TERMSIG;
 	  eof = 1;
 	  break;
@@ -916,6 +927,20 @@ ttyrestore (ttp)
      struct ttsave *ttp;
 {
   ttsetattr (ttp->fd, ttp->attrs);
+  tty_modified = 0;
+}
+
+void
+read_tty_cleanup ()
+{
+  if (tty_modified)
+    ttyrestore (&termsave);
+}
+
+int
+read_tty_modified ()
+{
+  return (tty_modified);
 }
 
 #if defined (READLINE)
